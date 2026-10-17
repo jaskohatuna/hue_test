@@ -83,6 +83,9 @@ jobs:
             ls "$APP/public" "$APP/public/assets"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+          # Short version as an annotation, visible on the run page without signing in.
+          frameworks=$(ls "$APP/Frameworks" 2>/dev/null | tr '\n' ' ')
+          echo "::notice title=App.app::$(du -sh "$APP" | cut -f1) · Frameworks: ${frameworks:-none} · Linked: $(otool -L "$APP/App" | awk 'NR>1{print $1}' | sed 's|.*/||' | tr '\n' ' ')"
           exit $missing
 
       - name: Package .ipa
