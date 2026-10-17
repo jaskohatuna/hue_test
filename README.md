@@ -67,6 +67,21 @@ npm run ios
 
 U Xcodeu odaberi svoj tim pod **Signing & Capabilities** i pokreni aplikaciju na iPhoneu. S besplatnim Apple ID-om aplikacija na vlastitom telefonu radi 7 dana; za duže i za App Store potreban je plaćeni Apple Developer račun. Pri prvom pokretanju iOS traži dozvolu za **lokalnu mrežu**: dozvoli je, inače aplikacija ne vidi backend.
 
+### iPhone bez Maca: GitHub Actions + Sideloadly
+
+Workflow [`.github/workflows/ios-ipa.yml`](.github/workflows/ios-ipa.yml) na GitHubovom Macu napravi nepotpisan `MojaSvjetla.ipa`. Sideloadly ga na Windowsu potpiše tvojim Apple ID-om i instalira preko kabla.
+
+1. Nakon `git push` workflow se pokrene sam (ili: **Actions → iOS IPA (za Sideloadly) → Run workflow**). Traje oko 10 minuta.
+2. **Actions** → zadnje pokretanje → **Artifacts → MojaSvjetla-ipa** → raspakuj zip → `MojaSvjetla.ipa`.
+3. Na Windowsu instaliraj **Sideloadly** (sideloadly.io) i ono što on traži za USB vezu s iPhoneom (iTunes i iCloud s Appleove stranice; provjeri upute na njihovoj stranici).
+4. Spoji iPhone kablom i na telefonu potvrdi **Vjeruj ovom računaru**.
+5. U Sideloadly prevuci `MojaSvjetla.ipa`, upiši Apple ID i klikni **Start**. Sideloadly traži lozinku Apple ID-a; ako ne želiš koristiti glavni račun, napravi poseban Apple ID samo za ovo.
+6. Na iPhoneu: **Postavke → Privatnost i sigurnost → Developer Mode** → uključi i restartuj telefon (obavezno od iOS-a 16).
+7. **Postavke → Općenito → VPN i upravljanje uređajem** → tvoj Apple ID → **Vjeruj**.
+8. Pokreni backend za telefon (`--host 0.0.0.0`, poglavlje 1), otvori aplikaciju, dozvoli **lokalnu mrežu** i upiši adresu računara, npr. `192.168.178.94:8000`.
+
+S besplatnim Apple ID-om potpis važi **7 dana**: tada ponovi korak 5 (ili uključi automatsko osvježavanje u Sideloadlyju). Na private repozitorijima GitHub besplatno daje ograničen broj macOS minuta mjesečno, a jedan build je dovoljno mali da to nije problem za povremenu upotrebu.
+
 ## Upravljanje svjetlima
 
 - **Dodir** na pločicu pali ili gasi svjetlo.
