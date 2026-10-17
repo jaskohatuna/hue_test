@@ -55,6 +55,22 @@ Komanda napravi build, kopira ga u `android/` i otvori Android Studio. Tamo odab
 
 Aplikacija koristi `androidScheme: "http"` i `usesCleartextTraffic`, jer backend u kućnoj mreži radi preko običnog HTTP-a.
 
+## iPhone bez Maca i bez potpisa: aplikacija na početnom ekranu (preporuka)
+
+Backend servira i samu aplikaciju (`app/dist`), pa je iPhone može otvoriti u Safariju i dodati na početni ekran. Tada ima svoju ikonu i otvara se preko cijelog ekrana. Ne treba Apple ID ni potpis, i nema isteka nakon 7 dana. Aplikacija otvorena s backenda sama koristi taj server, pa adresu ne treba unositi.
+
+1. Napravi aplikaciju i pokreni backend na mreži:
+   ```powershell
+   Set-Location 'C:\Users\jasmi\Desktop\Projekte\selver_mobile\app'
+   npm.cmd run build
+   Set-Location ..\backend
+   .\.venv\Scripts\python.exe -m uvicorn main:app --host 0.0.0.0 --port 8000
+   ```
+2. Na iPhoneu (ista Wi-Fi mreža) otvori u **Safariju** `http://192.168.178.94:8000`.
+3. **Dijeli** → **Dodaj na početni zaslon** → **Dodaj**. Ikona se zove "Svjetla".
+
+Ako se stranica na iPhoneu ne otvara, a na računaru radi: Windows Firewall mora dozvoliti Python na **privatnoj** mreži, a Wi-Fi mreža u Windowsu mora biti označena kao *Privatna* (Postavke → Mreža i internet → Wi-Fi → svojstva). Nakon nove verzije aplikacije dovoljno je ponovo pokrenuti `npm.cmd run build`; telefon je preuzme pri sljedećem otvaranju. Vibracije u ovom načinu ne rade jer ih Safari ne podržava.
+
 ## 4. iOS (iPhone)
 
 iOS aplikacija se može napraviti samo na **Macu s Xcodeom**. Projekat `ios/` je već generisan. Kopiraj folder na Mac, pa:

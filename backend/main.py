@@ -6,6 +6,7 @@ Start with: python -m uvicorn main:app --host 0.0.0.0 --port 8000
 import asyncio
 from contextlib import asynccontextmanager
 from ipaddress import ip_address
+from pathlib import Path
 from uuid import UUID
 
 from aiohttp import ClientError, ClientResponseError
@@ -15,6 +16,7 @@ from fastapi import FastAPI, HTTPException, Request, Response, WebSocket
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import (
     BaseModel, ConfigDict, Field, SecretStr, StrictBool, field_validator, model_validator,
 )
@@ -289,3 +291,19 @@ async def light_events(websocket: WebSocket):
             task.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
         await stream.unsubscribe(queue)
+
+
+class AppFiles(StaticFiles):
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        # Built assets have hashed names; index.html must be revalidated to pick up a new build.
+        immutable = Path(path).parts[:1] == ("assets",) and response.status_code == 200
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable" if immutable else "no-cache"
+        return response
+
+
+# The built app (`npm run build` in app/) is served from here too, so a phone can
+# open it in Safari and add it to the home screen. Routes above take precedence.
+WEB_DIR = Path(__file__).resolve().parent.parent / "app" / "dist"
+if WEB_DIR.is_dir():
+    app.mount("/", AppFiles(directory=WEB_DIR, html=True), name="app")

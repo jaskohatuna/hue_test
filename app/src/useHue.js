@@ -1,4 +1,5 @@
 import { computed, ref, watch } from 'vue'
+import { Capacitor } from '@capacitor/core'
 import { createApi } from './api.js'
 import { createCommandQueue } from './commands.js'
 import { createBridgeStream, createRefreshQueue } from './live.js'
@@ -213,10 +214,28 @@ export function useHue() {
     }
   }
 
+  /** The page itself is served by the backend (browser / iPhone home screen). */
+  async function findPageServer() {
+    if (Capacitor.isNativePlatform() || !/^https?:$/.test(globalThis.location?.protocol ?? '')) return null
+    const pageApi = createApi(location.origin)
+    try {
+      return { api: pageApi, setup: await pageApi.getSetup({ timeout: SERVER_CHECK_TIMEOUT }) }
+    } catch {
+      // E.g. the Vite dev server: no Hue backend on this origin.
+      return null
+    }
+  }
+
   async function boot() {
     const saved = await loadServerUrl()
     if (disposed) return
     if (!saved) {
+      const page = await findPageServer()
+      if (disposed) return
+      if (page) {
+        await useServer(location.origin, page.api, page.setup)
+        return
+      }
       screen.value = 'server'
       return
     }
