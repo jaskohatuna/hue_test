@@ -1,0 +1,4 @@
+-r requirements.txt
+httpx==0.28.1
+# Only for dev/mock_bridge.py (simulated Hue Bridge certificate)
+cryptography==50.0.2

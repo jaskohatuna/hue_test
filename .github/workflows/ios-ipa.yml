@@ -1,0 +1,70 @@
+# Builds an unsigned iPhone app (.ipa) on GitHub's macOS runner.
+# Sideloadly on Windows signs it with your Apple ID and installs it over USB.
+name: iOS IPA (za Sideloadly)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - '.github/workflows/ios-ipa.yml'
+
+concurrency:
+  group: ios-ipa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ipa:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      # Capacitor 8 needs a current Xcode (26+).
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install, test and build the web app
+        run: |
+          npm ci
+          npm test
+          npm run build
+          npx cap sync ios
+
+      - name: Build App.app for iPhone (unsigned)
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package .ipa
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qry MojaSvjetla.ipa Payload
+          ls -lh MojaSvjetla.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MojaSvjetla-ipa
+          path: app/MojaSvjetla.ipa
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,17 @@
+{
+  "appId": "com.selver.mojasvjetla",
+  "appName": "Moja svjetla",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http"
+  },
+  "ios": {
+    "contentInset": "never"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "initialViewportFitValueHint": "cover"
+    }
+  }
+}
